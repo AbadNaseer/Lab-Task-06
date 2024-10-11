@@ -2,34 +2,31 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
-// In-memory data storage using arrays
+// In-memory data structure
 let posts = [
   {
     id: 1,
-    title: "First Post",
-    content: "This is the first post.",
+    title: 'First Post',
+    content: 'This is the first post.',
     comments: [
-      { id: 1, text: "Great post!" },
-      { id: 2, text: "Thanks for sharing." },
-      { id: 3, text: "Awesome!" }
+      { id: 1, text: 'First comment' },
+      { id: 2, text: 'Second comment' },
+      { id: 3, text: 'Third comment' }
     ]
   }
 ];
-let nextPostId = 2;
-let nextCommentId = 4;
+let postIdCounter = 2;
+let commentIdCounter = 4;
 
-// Routes for posts
-
-// View all posts
+// Routes for managing posts
 app.get('/posts', (req, res) => {
   res.json(posts);
 });
 
-// Add a new post
 app.post('/posts', (req, res) => {
   const { title, content } = req.body;
   const newPost = {
-    id: nextPostId++,
+    id: postIdCounter++,
     title,
     content,
     comments: []
@@ -38,14 +35,13 @@ app.post('/posts', (req, res) => {
   res.status(201).json(newPost);
 });
 
-// Update an existing post
 app.put('/posts/:id', (req, res) => {
-  const postId = parseInt(req.params.id);
+  const { id } = req.params;
   const { title, content } = req.body;
-  const post = posts.find(p => p.id === postId);
+  const post = posts.find(p => p.id === parseInt(id));
 
   if (!post) {
-    return res.status(404).json({ message: "Post not found" });
+    return res.status(404).json({ message: 'Post not found' });
   }
 
   post.title = title;
@@ -53,95 +49,88 @@ app.put('/posts/:id', (req, res) => {
   res.json(post);
 });
 
-// Delete a post (and its associated comments)
 app.delete('/posts/:id', (req, res) => {
-  const postId = parseInt(req.params.id);
-  const postIndex = posts.findIndex(p => p.id === postId);
+  const { id } = req.params;
+  const postIndex = posts.findIndex(p => p.id === parseInt(id));
 
   if (postIndex === -1) {
-    return res.status(404).json({ message: "Post not found" });
+    return res.status(404).json({ message: 'Post not found' });
   }
 
   posts.splice(postIndex, 1);
-  res.status(204).end();
+  res.status(204).send();
 });
 
-// Routes for comments
-
-// View all comments for a specific post
-app.get('/posts/:id/comments', (req, res) => {
-  const postId = parseInt(req.params.id);
-  const post = posts.find(p => p.id === postId);
+// Routes for managing comments
+app.get('/posts/:postId/comments', (req, res) => {
+  const { postId } = req.params;
+  const post = posts.find(p => p.id === parseInt(postId));
 
   if (!post) {
-    return res.status(404).json({ message: "Post not found" });
+    return res.status(404).json({ message: 'Post not found' });
   }
 
   res.json(post.comments);
 });
 
-// Add a comment to a specific post
-app.post('/posts/:id/comments', (req, res) => {
-  const postId = parseInt(req.params.id);
+app.post('/posts/:postId/comments', (req, res) => {
+  const { postId } = req.params;
   const { text } = req.body;
-  const post = posts.find(p => p.id === postId);
+  const post = posts.find(p => p.id === parseInt(postId));
 
   if (!post) {
-    return res.status(404).json({ message: "Post not found" });
+    return res.status(404).json({ message: 'Post not found' });
   }
 
   const newComment = {
-    id: nextCommentId++,
+    id: commentIdCounter++,
     text
   };
-
   post.comments.push(newComment);
   res.status(201).json(newComment);
 });
 
-// Update a specific comment
 app.put('/posts/:postId/comments/:commentId', (req, res) => {
-  const postId = parseInt(req.params.postId);
-  const commentId = parseInt(req.params.commentId);
+  const { postId, commentId } = req.params;
   const { text } = req.body;
-  const post = posts.find(p => p.id === postId);
+  const post = posts.find(p => p.id === parseInt(postId));
 
   if (!post) {
-    return res.status(404).json({ message: "Post not found" });
+    return res.status(404).json({ message: 'Post not found' });
   }
 
-  const comment = post.comments.find(c => c.id === commentId);
+  const comment = post.comments.find(c => c.id === parseInt(commentId));
 
   if (!comment) {
-    return res.status(404).json({ message: "Comment not found" });
+    return res.status(404).json({ message: 'Comment not found' });
   }
 
   comment.text = text;
   res.json(comment);
 });
 
-// Delete a specific comment
 app.delete('/posts/:postId/comments/:commentId', (req, res) => {
-  const postId = parseInt(req.params.postId);
-  const commentId = parseInt(req.params.commentId);
-  const post = posts.find(p => p.id === postId);
+  const { postId, commentId } = req.params;
+  const post = posts.find(p => p.id === parseInt(postId));
 
   if (!post) {
-    return res.status(404).json({ message: "Post not found" });
+    return res.status(404).json({ message: 'Post not found' });
   }
 
-  const commentIndex = post.comments.findIndex(c => c.id === commentId);
+  const commentIndex = post.comments.findIndex(c => c.id === parseInt(commentId));
 
   if (commentIndex === -1) {
-    return res.status(404).json({ message: "Comment not found" });
+    return res.status(404).json({ message: 'Comment not found' });
   }
 
   post.comments.splice(commentIndex, 1);
-  res.status(204).end();
+  res.status(204).send();
 });
 
-// Start server
+// Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
+
+module.exports = app;
