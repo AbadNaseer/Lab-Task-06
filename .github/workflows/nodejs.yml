@@ -2,28 +2,29 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [14.x, 16.x]
+        node-version: [16.x, 18.x]
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3 # Update to v3 to resolve the deprecation
 
-    - name: Setup Node.js environment
-      uses: actions/setup-node@v2
+    - name: Setup Node.js
+      uses: actions/setup-node@v3 # Update to v3 to resolve the deprecation
       with:
         node-version: ${{ matrix.node-version }}
-
+    
     - name: Install dependencies
       run: npm install
 
